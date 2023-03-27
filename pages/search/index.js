@@ -1,7 +1,10 @@
-import axios from "axios";import { useRouter } from "next/router";
+import axios from "axios";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Slider from "@mui/material/Slider";
 import CurrencyInput from "react-currency-input-field";
+import qs from "qs";
+import assert from "assert";
 
 export default function Search() {
   const router = useRouter();
@@ -9,7 +12,7 @@ export default function Search() {
 
   //VALUE FOR INPUT
   const [gender, setGender] = useState("");
-  const [category, setCategory] = useState("");
+  const [category, setCategory] = useState([]);
   const [color, setColor] = useState("");
 
   //MAPPING MATCHED SEARCH PRODUCT
@@ -36,14 +39,95 @@ export default function Search() {
   const [isLoading, setIsLoading] = useState(true);
 
   const handleCategory = (e) => {
-    setCategory(e.target.value);
+    if (e.target.value === "All") {
+      setCategory(["All"]);
 
-    query.category = e.target.value;
+      delete query["category[]"];
 
-    if (e.target.value === category) delete query.category;
+      router.push({
+        pathname: "/search",
+        query,
+      });
+    } else if (category.includes(e.target.value)) {
+      const filtered = category.filter((c) => {
+        return c !== e.target.value;
+      });
+
+      setCategory(filtered);
+
+      const serializedParams = qs.stringify(
+        { gender: query.gender, category: filtered },
+        {
+          arrayFormat: "brackets",
+          encode: false,
+        }
+      );
+
+      if (filtered.length === 0) {
+        router.push({
+          pathname: "/search",
+          search: `${serializedParams}`,
+        });
+      } else {
+        router.push({
+          pathname: "/search",
+          search: `?${serializedParams}`,
+        });
+      }
+    } else {
+      const filter = category.filter((c) => {
+        return c !== "All";
+      });
+
+      setCategory(filter);
+
+      setCategory((prevCategory) => [...prevCategory, e.target.value]);
+
+      const params = [...filter, e.target.value];
+
+      const serializedParams = qs.stringify(
+        { gender: query.gender, category: params },
+        {
+          arrayFormat: "brackets",
+          encode: false,
+        }
+      );
+
+      router.push({
+        pathname: "/search",
+        search: `?${serializedParams}`,
+      });
+    }
+
+    // if (e.target.value === category) delete query.category;
+  };
+
+  const handleGender = (e) => {
+    setGender(e.target.value);
+
+    query.gender = e.target.value;
+
+    if (e.target.value === "all") delete query.gender;
+    if (e.target.value === gender) delete query.gender;
+
+    let params = {};
+
+    if (category.length > 0 && !category.includes("All")) {
+      params.category = category;
+    }
+
+    if (query.gender) {
+      params.gender = query.gender;
+    }
+
+    const serializedParams = qs.stringify(params, {
+      arrayFormat: "brackets",
+      encode: false,
+    });
 
     router.push({
-      query,
+      pathname: "/search",
+      search: serializedParams ? `?${serializedParams}` : "",
     });
   };
 
@@ -53,21 +137,6 @@ export default function Search() {
     query.color = e.target.value;
 
     if (e.target.value === color) delete query.color;
-
-    router.push({
-      query,
-    });
-  };
-
-  const handleGender = (e) => {
-    setGender(e.target.value);
-
-    query.gender = e.target.value;
-
-    if (e.target.value === "all") delete query.gender;
-    //  if (e.target.value === "all") delete query.gender;
-
-    if (e.target.value === gender) delete query.gender;
 
     router.push({
       query,
@@ -104,7 +173,8 @@ export default function Search() {
   const getCategories = async () => {
     try {
       const res = await axios.get("http://localhost:3001/categories");
-      setCategories(res.data.data);
+      const addAll = [{ value: "all", name: "All" }, ...res.data.data];
+      setCategories(addAll);
     } catch (error) {
       console.log(error);
     }
@@ -113,8 +183,8 @@ export default function Search() {
   const getColors = async () => {
     try {
       const res = await axios.get("http://localhost:3001/colors");
-
-      setColors(res.data.data);
+      const addAll = [{ value: "all", name: "All" }, ...res.data.data];
+      setColors(addAll);
     } catch (error) {
       console.log(error);
     }
@@ -126,8 +196,15 @@ export default function Search() {
   }, []);
 
   useEffect(() => {
-    if (query.category !== "")
-      setCategory((prevCategory) => (prevCategory = query.category));
+    //  console.log(query["category[]"]);
+
+    if (!query["category[]"]) {
+      setCategory(["All"]);
+    } else if (typeof query["category[]"] === "string") {
+      setCategory([query["category[]"]]);
+    } else {
+      setCategory(query["category[]"]);
+    }
 
     if (query.color !== "") setColor((prevColor) => (prevColor = query.color));
 
@@ -209,8 +286,14 @@ export default function Search() {
                 onChange={handleCategory}
                 type="checkbox"
                 value={c.name}
-                checked={c.name === category}
+                checked={
+                  c.name ===
+                  category.find((ctr) => {
+                    return c.name === ctr;
+                  })
+                }
               />
+
               {c.name}
             </label>
           </div>
