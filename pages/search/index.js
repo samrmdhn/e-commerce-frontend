@@ -13,7 +13,7 @@ export default function Search() {
   //VALUE FOR INPUT
   const [gender, setGender] = useState("");
   const [category, setCategory] = useState([]);
-  const [color, setColor] = useState("");
+  const [color, setColor] = useState([]);
 
   //MAPPING MATCHED SEARCH PRODUCT
   const [datas, setDatas] = useState([]);
@@ -56,7 +56,7 @@ export default function Search() {
       setCategory(filtered);
 
       const serializedParams = qs.stringify(
-        { gender: query.gender, category: filtered },
+        { gender: query.gender, color: query["color[]"], category: filtered },
         {
           arrayFormat: "brackets",
           encode: false,
@@ -83,15 +83,24 @@ export default function Search() {
 
       setCategory((prevCategory) => [...prevCategory, e.target.value]);
 
-      const params = [...filter, e.target.value];
+      //  const params = [...filter, e.target.value];
 
-      const serializedParams = qs.stringify(
-        { gender: query.gender, category: params },
-        {
-          arrayFormat: "brackets",
-          encode: false,
-        }
-      );
+      let params = {};
+
+      params.category = [...filter, e.target.value];
+
+      if (color.length > 0 && !color.includes("All")) {
+        params.color = color;
+      }
+
+      if (query.gender) {
+        params.gender = query.gender;
+      }
+
+      const serializedParams = qs.stringify(params, {
+        arrayFormat: "brackets",
+        encode: false,
+      });
 
       router.push({
         pathname: "/search",
@@ -116,6 +125,10 @@ export default function Search() {
       params.category = category;
     }
 
+    if (color.length > 0 && !color.includes("All")) {
+      params.color = color;
+    }
+
     if (query.gender) {
       params.gender = query.gender;
     }
@@ -132,15 +145,84 @@ export default function Search() {
   };
 
   const handleColor = (e) => {
-    setColor(e.target.value);
+    if (e.target.value === "All") {
+      //Set to default
 
-    query.color = e.target.value;
+      setColor(["All"]);
 
-    if (e.target.value === color) delete query.color;
+      delete query["color[]"];
 
-    router.push({
-      query,
-    });
+      router.push({
+        pathname: "/search",
+        query,
+      });
+    } else if (color.includes(e.target.value)) {
+      //Unselected
+
+      const filtered = color.filter((c) => {
+        return c !== e.target.value;
+      });
+
+      setColor(filtered);
+
+      const serializedParams = qs.stringify(
+        {
+          gender: query.gender,
+          category: query["category[]"],
+          color: filtered,
+        },
+        {
+          arrayFormat: "brackets",
+          encode: false,
+        }
+      );
+
+      if (filtered.length === 0) {
+        router.push({
+          pathname: "/search",
+          search: `${serializedParams}`,
+        });
+      } else {
+        router.push({
+          pathname: "/search",
+          search: `?${serializedParams}`,
+        });
+      }
+    } else {
+      //Select New
+
+      const filter = color.filter((c) => {
+        return c !== "All";
+      });
+
+      setColor(filter);
+
+      setColor((prevColor) => [...prevColor, e.target.value]);
+
+      //    const params = [...filter, e.target.value];
+
+      let params = {};
+
+      params.color = [...filter, e.target.value];
+
+      if (category.length > 0 && !category.includes("All")) {
+        params.category = category;
+      }
+
+      if (query.gender) {
+        params.gender = query.gender;
+      }
+
+      const serializedParams = qs.stringify(params, {
+        arrayFormat: "brackets",
+        encode: false,
+      });
+
+      router.push({
+        pathname: "/search",
+        search: `?${serializedParams}`,
+      });
+    }
   };
 
   const handleSearch = async () => {
@@ -206,7 +288,13 @@ export default function Search() {
       setCategory(query["category[]"]);
     }
 
-    if (query.color !== "") setColor((prevColor) => (prevColor = query.color));
+    if (!query["color[]"]) {
+      setColor(["All"]);
+    } else if (typeof query["color[]"] === "string") {
+      setColor([query["color[]"]]);
+    } else {
+      setColor(query["color[]"]);
+    }
 
     if (!query.gender) {
       setGender((prevGender) => (prevGender = "all"));
@@ -309,7 +397,12 @@ export default function Search() {
                 onChange={handleColor}
                 type="checkbox"
                 value={c.name}
-                checked={c.name === color}
+                checked={
+                  c.name ===
+                  color.find((clr) => {
+                    return c.name === clr;
+                  })
+                }
               />
               {c.name}
             </label>
