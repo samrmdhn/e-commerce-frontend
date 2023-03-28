@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";import axios from "axios";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 export default function D_Collection() {
   const [collections, setCollections] = useState([]);
@@ -7,7 +8,7 @@ export default function D_Collection() {
 
   const getDatas = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/collection");
+      const res = await axios.get("http://localhost:3001/collections");
       setCollections(res.data.data);
     } catch (error) {
       console.log(error);

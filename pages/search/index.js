@@ -1,5 +1,4 @@
-import axios from "axios";
-import { useRouter } from "next/router";
+import axios from "axios";import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Slider from "@mui/material/Slider";
 import CurrencyInput from "react-currency-input-field";
@@ -14,6 +13,7 @@ export default function Search() {
   const [gender, setGender] = useState("");
   const [category, setCategory] = useState([]);
   const [color, setColor] = useState([]);
+  const [collection, setCollection] = useState("");
 
   //MAPPING MATCHED SEARCH PRODUCT
   const [datas, setDatas] = useState([]);
@@ -35,6 +35,7 @@ export default function Search() {
       label: "Women",
     },
   ]);
+  const [collections, setCollections] = useState([]);
 
   const [isLoading, setIsLoading] = useState(true);
 
@@ -44,9 +45,28 @@ export default function Search() {
 
       delete query["category[]"];
 
+      let params = {};
+
+      if (color.length > 0 && !color.includes("All")) {
+        params.color = color;
+      }
+
+      if (query.gender) {
+        params.gender = query.gender;
+      }
+
+      if (query.collection) {
+        params.collection = query.collection.replace(/\s+/g, "+");
+      }
+
+      const serializedParams = qs.stringify(params, {
+        arrayFormat: "brackets",
+        encode: false,
+      });
+
       router.push({
         pathname: "/search",
-        query,
+        search: `${serializedParams}`,
       });
     } else if (category.includes(e.target.value)) {
       const filtered = category.filter((c) => {
@@ -55,13 +75,26 @@ export default function Search() {
 
       setCategory(filtered);
 
-      const serializedParams = qs.stringify(
-        { gender: query.gender, color: query["color[]"], category: filtered },
-        {
-          arrayFormat: "brackets",
-          encode: false,
-        }
-      );
+      let params = {};
+
+      params.category = filtered;
+
+      if (color.length > 0 && !color.includes("All")) {
+        params.color = color;
+      }
+
+      if (query.gender) {
+        params.gender = query.gender;
+      }
+
+      if (query.collection) {
+        params.collection = query.collection.replace(/\s+/g, "+");
+      }
+
+      const serializedParams = qs.stringify(params, {
+        arrayFormat: "brackets",
+        encode: false,
+      });
 
       if (filtered.length === 0) {
         router.push({
@@ -75,11 +108,11 @@ export default function Search() {
         });
       }
     } else {
-      const filter = category.filter((c) => {
+      const filtered = category.filter((c) => {
         return c !== "All";
       });
 
-      setCategory(filter);
+      setCategory(filtered);
 
       setCategory((prevCategory) => [...prevCategory, e.target.value]);
 
@@ -87,7 +120,7 @@ export default function Search() {
 
       let params = {};
 
-      params.category = [...filter, e.target.value];
+      params.category = [...filtered, e.target.value];
 
       if (color.length > 0 && !color.includes("All")) {
         params.color = color;
@@ -95,6 +128,10 @@ export default function Search() {
 
       if (query.gender) {
         params.gender = query.gender;
+      }
+
+      if (query.collection) {
+        params.collection = query.collection.replace(/\s+/g, "+");
       }
 
       const serializedParams = qs.stringify(params, {
@@ -117,6 +154,7 @@ export default function Search() {
     query.gender = e.target.value;
 
     if (e.target.value === "all") delete query.gender;
+
     if (e.target.value === gender) delete query.gender;
 
     let params = {};
@@ -131,6 +169,10 @@ export default function Search() {
 
     if (query.gender) {
       params.gender = query.gender;
+    }
+
+    if (query.collection) {
+      params.collection = query.collection.replace(/\s+/g, "+");
     }
 
     const serializedParams = qs.stringify(params, {
@@ -152,9 +194,28 @@ export default function Search() {
 
       delete query["color[]"];
 
+      let params = {};
+
+      if (category.length > 0 && !category.includes("All")) {
+        params.category = category;
+      }
+
+      if (query.gender) {
+        params.gender = query.gender;
+      }
+
+      if (query.collection) {
+        params.collection = query.collection.replace(/\s+/g, "+");
+      }
+
+      const serializedParams = qs.stringify(params, {
+        arrayFormat: "brackets",
+        encode: false,
+      });
+
       router.push({
         pathname: "/search",
-        query,
+        search: `${serializedParams}`,
       });
     } else if (color.includes(e.target.value)) {
       //Unselected
@@ -165,17 +226,26 @@ export default function Search() {
 
       setColor(filtered);
 
-      const serializedParams = qs.stringify(
-        {
-          gender: query.gender,
-          category: query["category[]"],
-          color: filtered,
-        },
-        {
-          arrayFormat: "brackets",
-          encode: false,
-        }
-      );
+      let params = {};
+
+      params.color = filtered;
+
+      if (category.length > 0 && !category.includes("All")) {
+        params.category = category;
+      }
+
+      if (query.gender) {
+        params.gender = query.gender;
+      }
+
+      if (query.collection) {
+        params.collection = query.collection.replace(/\s+/g, "+");
+      }
+
+      const serializedParams = qs.stringify(params, {
+        arrayFormat: "brackets",
+        encode: false,
+      });
 
       if (filtered.length === 0) {
         router.push({
@@ -191,11 +261,11 @@ export default function Search() {
     } else {
       //Select New
 
-      const filter = color.filter((c) => {
+      const filtered = color.filter((c) => {
         return c !== "All";
       });
 
-      setColor(filter);
+      setColor(filtered);
 
       setColor((prevColor) => [...prevColor, e.target.value]);
 
@@ -203,7 +273,7 @@ export default function Search() {
 
       let params = {};
 
-      params.color = [...filter, e.target.value];
+      params.color = [...filtered, e.target.value];
 
       if (category.length > 0 && !category.includes("All")) {
         params.category = category;
@@ -211,6 +281,10 @@ export default function Search() {
 
       if (query.gender) {
         params.gender = query.gender;
+      }
+
+      if (query.collection) {
+        params.collection = query.collection.replace(/\s+/g, "+");
       }
 
       const serializedParams = qs.stringify(params, {
@@ -223,6 +297,46 @@ export default function Search() {
         search: `?${serializedParams}`,
       });
     }
+  };
+
+  const handleCollection = (e) => {
+    setCollection(e.target.value);
+
+    query.collection = e.target.value.replace(/\s+/g, "+");
+
+    //query.collection = e.target.value;
+
+    if (e.target.value === "All") delete query.collection;
+
+    if (e.target.value === collection) delete query.collection;
+
+    let params = {};
+
+    if (category.length > 0 && !category.includes("All")) {
+      params.category = category;
+    }
+
+    if (color.length > 0 && !color.includes("All")) {
+      params.color = color;
+    }
+
+    if (query.gender) {
+      params.gender = query.gender;
+    }
+
+    if (query.collection) {
+      params.collection = query.collection.replace(/\s+/g, "+");
+    }
+
+    const serializedParams = qs.stringify(params, {
+      arrayFormat: "brackets",
+      encode: false,
+    });
+
+    router.push({
+      pathname: "/search",
+      search: serializedParams ? `?${serializedParams}` : "",
+    });
   };
 
   const handleSearch = async () => {
@@ -272,9 +386,20 @@ export default function Search() {
     }
   };
 
+  const getCollections = async () => {
+    try {
+      const res = await axios.get("http://localhost:3001/collections");
+      const addAll = [{ name: "All" }, ...res.data.data];
+      setCollections(addAll);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     getCategories();
     getColors();
+    getCollections();
   }, []);
 
   useEffect(() => {
@@ -300,6 +425,13 @@ export default function Search() {
       setGender((prevGender) => (prevGender = "all"));
     } else {
       setGender((prevGender) => (prevGender = query.gender));
+    }
+
+    if (!query.collection) {
+      setCollection("All");
+    } else {
+      const decoded = decodeURIComponent(query.collection.replace(/\+/g, " "));
+      setCollection(decoded);
     }
 
     if (query.price_min !== "" && query.price_max !== "")
@@ -347,6 +479,26 @@ export default function Search() {
   return (
     <div>
       <div>Search Page</div>
+
+      <br />
+      <div>Collections</div>
+      {collections.map((c, index) => {
+        return (
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                value={c.name}
+                onChange={handleCollection}
+                checked={c.name === collection}
+              />
+
+              {c.name}
+            </label>
+          </div>
+        );
+      })}
+
       <br />
       <div>Gender</div>
       {genders.map((g, index) => {

@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";import axios from "axios";
 
 export default function D_Color() {
   const [colors, setColors] = useState([]);
   const [name, setName] = useState("");
 
   const getDatas = async () => {
-    const res = await axios.get("http://localhost:3001/color");
+    const res = await axios.get("http://localhost:3001/colors");
     console.log(res.data.data);
     setColors(res.data.data);
   };

@@ -112,7 +112,7 @@ export default function D_Product() {
   const getColors = async () => {
     try {
       const res = await axios
-        .get("http://localhost:3001/color")
+        .get("http://localhost:3001/colors")
         .then((response) => response.data.data);
 
       setColors(res);
@@ -128,7 +128,7 @@ export default function D_Product() {
 
   const getCollections = async () => {
     try {
-      const res = await axios.get("http://localhost:3001/collection");
+      const res = await axios.get("http://localhost:3001/collections");
       setCollections(res.data.data);
       console.log(res);
       setProduct((prevProduct) => ({
