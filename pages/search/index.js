@@ -1,4 +1,5 @@
-import axios from "axios";import { useRouter } from "next/router";
+import axios from "axios";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import Slider from "@mui/material/Slider";
 import CurrencyInput from "react-currency-input-field";
@@ -59,6 +60,14 @@ export default function Search() {
         params.collection = query.collection.replace(/\s+/g, "+");
       }
 
+      if (query.price_min) {
+        params.price_min = query.price_min;
+      }
+
+      if (query.price_max) {
+        params.price_max = query.price_max;
+      }
+
       const serializedParams = qs.stringify(params, {
         arrayFormat: "brackets",
         encode: false,
@@ -89,6 +98,14 @@ export default function Search() {
 
       if (query.collection) {
         params.collection = query.collection.replace(/\s+/g, "+");
+      }
+
+      if (query.price_min) {
+        params.price_min = query.price_min;
+      }
+
+      if (query.price_max) {
+        params.price_max = query.price_max;
       }
 
       const serializedParams = qs.stringify(params, {
@@ -134,6 +151,14 @@ export default function Search() {
         params.collection = query.collection.replace(/\s+/g, "+");
       }
 
+      if (query.price_min) {
+        params.price_min = query.price_min;
+      }
+
+      if (query.price_max) {
+        params.price_max = query.price_max;
+      }
+
       const serializedParams = qs.stringify(params, {
         arrayFormat: "brackets",
         encode: false,
@@ -175,6 +200,14 @@ export default function Search() {
       params.collection = query.collection.replace(/\s+/g, "+");
     }
 
+    if (query.price_min) {
+      params.price_min = query.price_min;
+    }
+
+    if (query.price_max) {
+      params.price_max = query.price_max;
+    }
+
     const serializedParams = qs.stringify(params, {
       arrayFormat: "brackets",
       encode: false,
@@ -206,6 +239,14 @@ export default function Search() {
 
       if (query.collection) {
         params.collection = query.collection.replace(/\s+/g, "+");
+      }
+
+      if (query.price_min) {
+        params.price_min = query.price_min;
+      }
+
+      if (query.price_max) {
+        params.price_max = query.price_max;
       }
 
       const serializedParams = qs.stringify(params, {
@@ -240,6 +281,14 @@ export default function Search() {
 
       if (query.collection) {
         params.collection = query.collection.replace(/\s+/g, "+");
+      }
+
+      if (query.price_min) {
+        params.price_min = query.price_min;
+      }
+
+      if (query.price_max) {
+        params.price_max = query.price_max;
       }
 
       const serializedParams = qs.stringify(params, {
@@ -287,6 +336,14 @@ export default function Search() {
         params.collection = query.collection.replace(/\s+/g, "+");
       }
 
+      if (query.price_min) {
+        params.price_min = query.price_min;
+      }
+
+      if (query.price_max) {
+        params.price_max = query.price_max;
+      }
+
       const serializedParams = qs.stringify(params, {
         arrayFormat: "brackets",
         encode: false,
@@ -326,6 +383,14 @@ export default function Search() {
 
     if (query.collection) {
       params.collection = query.collection.replace(/\s+/g, "+");
+    }
+
+    if (query.price_min) {
+      params.price_min = query.price_min;
+    }
+
+    if (query.price_max) {
+      params.price_max = query.price_max;
     }
 
     const serializedParams = qs.stringify(params, {
@@ -434,8 +499,17 @@ export default function Search() {
       setCollection(decoded);
     }
 
-    if (query.price_min !== "" && query.price_max !== "")
-      setPrice([query.price_min, query.price_max]);
+    if (query.price_min !== "" || undefined || 0) {
+      setPrice((prevPrice) => ({ ...prevPrice, min: query.price_min }));
+    } else {
+      setPrice((prevPrice) => ({ ...prevPrice, min: 0 }));
+    }
+
+    if (query.price_max !== "" || undefined || 0) {
+      setPrice((prevPrice) => ({ ...prevPrice, max: query.price_max }));
+    } else {
+      setPrice((prevPrice) => ({ ...prevPrice, max: 0 }));
+    }
 
     if (Object.keys(query).length !== 0) {
       handleSearch();
@@ -444,20 +518,48 @@ export default function Search() {
     }
   }, [query]);
 
-  const [price, setPrice] = useState({ min: 0, max: 1000000 });
+  const [price, setPrice] = useState({ min: 0, max: 0 });
 
   const handlePriceMin = (value) => {
     setPrice((prevPrice) => ({ ...prevPrice, min: value }));
 
-    query.price_min = value;
+    //query.price_min = value;
 
     if (value === undefined) delete query.price_min;
 
-    if (value !== Number(0)) {
-      router.push({
-        query,
-      });
+    let params = {};
+
+    params.price_min = value;
+
+    if (category.length > 0 && !category.includes("All")) {
+      params.category = category;
     }
+
+    if (color.length > 0 && !color.includes("All")) {
+      params.color = color;
+    }
+
+    if (query.gender) {
+      params.gender = query.gender;
+    }
+
+    if (query.collection) {
+      params.collection = query.collection.replace(/\s+/g, "+");
+    }
+
+    if (query.price_max) {
+      params.price_max = query.price_max;
+    }
+
+    const serializedParams = qs.stringify(params, {
+      arrayFormat: "brackets",
+      encode: false,
+    });
+
+    router.push({
+      pathname: "/search",
+      search: serializedParams ? `?${serializedParams}` : "",
+    });
   };
 
   const handlePriceMax = (value) => {
@@ -465,15 +567,41 @@ export default function Search() {
 
     setPrice((prevPrice) => ({ ...prevPrice, max: value }));
 
-    query.price_max = value;
-
     if (value === undefined) delete query.price_max;
 
-    if (value !== Number(0)) {
-      router.push({
-        query,
-      });
+    let params = {};
+
+    params.price_max = value;
+
+    if (category.length > 0 && !category.includes("All")) {
+      params.category = category;
     }
+
+    if (color.length > 0 && !color.includes("All")) {
+      params.color = color;
+    }
+
+    if (query.gender) {
+      params.gender = query.gender;
+    }
+
+    if (query.collection) {
+      params.collection = query.collection.replace(/\s+/g, "+");
+    }
+
+    if (query.price_min) {
+      params.price_min = query.price_min;
+    }
+
+    const serializedParams = qs.stringify(params, {
+      arrayFormat: "brackets",
+      encode: false,
+    });
+
+    router.push({
+      pathname: "/search",
+      search: serializedParams ? `?${serializedParams}` : "",
+    });
   };
 
   return (
